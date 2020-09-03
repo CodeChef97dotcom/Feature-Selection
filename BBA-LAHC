@@ -1,0 +1,119 @@
+#define BBA
+
+def BBA(n, A, r, d, Max_iter, CostFunction):
+        
+    Qmin = 0 #min freq
+    Qmax = 2 #max freq
+    
+    N_iter = 0 #total no.  function evalutations
+    
+    #initialize arrays
+    Q = np.zeros((n,1)) #Freq
+    v = np.zeros((n,d)) #Velocities
+    S = np.zeros((n,d)) #empty solution matrix 
+    cg_curve = np.zeros((1, Max_iter)) #convergence curve 
+    Sol = np.zeros((n,d))
+    Fitness=[]    
+    
+    for i in range(0,n):
+        for j in range(0,d):
+            if random.random()<=0.5:
+                Sol[i][j]=0
+            else:
+                Sol[i][j]=1
+    
+    for a in range(0,n):
+        Fitness.append(CostFunction(Sol[a,:]))
+    
+    # Find the current best
+    fmin = min(Fitness) 
+    I = Fitness.index(fmin)
+    best = Sol[I,:] #I is the position of 1s
+    
+    #Start the iterations -- Binary Bat Algorithm
+    while(N_iter<Max_iter):
+        N_iter += 1
+       # cg_curve[N_iter] = fmin
+        for i in range(0,n):
+            for j in range(0,d):
+                Q[i] = Qmin+(Qmin+Qmax)*random.random() 
+                v[i,j] = v[i,j] + (Sol[i,j]-best[j])*Q[i] 
+                V_shaped_transfer_function=abs((2/pi)*math.atan((pi/2)*v[i,j])); 
+                
+                
+                if random.random()<V_shaped_transfer_function:
+                    S[i,j]=int(not S[i,j]) 
+                if random.random()>r:
+                    S[i,j]=best[j]
+             
+            Fnew = CostFunction(Sol[i,:])
+            
+            if (Fnew<=Fitness[i] and random.random()<A): #solution improves and not too loud
+                Sol[i,:] = S[i,:]
+                Fitness[i] = Fnew
+            
+            #Update current best
+            if Fnew <= fmin:
+                best = S[i,:]
+                fmin = Fnew
+                
+            #LAHC Local Search
+            
+            Best = LAHC(CostFunction , d ,best)
+            
+    return [Best,fmin,Fitness]        
+            
+    
+def LAHC(CostFunction, d, Candidate):
+    
+    Lfa = 20
+    s = [random.randint(0,1) for i in range(d)] # initial solution is produced
+    Cs = CostFunction(s) # cost of solution
+    best = s # best solution
+    #Cbest = Cs # cost of best solution
+    f = Cs * np.ones(Lfa) # If Lfa is large, an array will be more efficient than a list
+    I = 0
+    I_idle=0
+                
+    while (I<100000) and (I_idle>I*0.02):
+                    
+        candidate_sol = Candidate # Sol[i,:]
+        candidate_cost = CostFunction(candidate_sol) # cost function for the candidate
+                    
+        if candidate_cost >= Cs:    
+            I_idle = I_idle + 1
+        else:   
+            I_idle = 0
+                        
+        v = I % Lfa
+                    
+        if candidate_cost <= f[v] or candidate_cost <= Cs: # accept the candidate
+            s = candidate_sol
+        else:
+            pass # reject the candidate
+                    
+        if Cs < f[v]:
+            f[v] = Cs
+                    
+        I = I + 1
+                    
+    return best
+                
+def CostFunction(solution):                    
+    
+    ## define your own cost function for the required problem##
+    
+    #return value of cost function#
+   
+    
+    
+    
+    
+    
+    
+    
+    
+    
+                    
+    
+                
